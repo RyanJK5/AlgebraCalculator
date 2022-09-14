@@ -1,0 +1,15 @@
+D:\repositories\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.exe
+D:\repositories\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.deps.json
+D:\repositories\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.runtimeconfig.json
+D:\repositories\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.dll
+D:\repositories\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.pdb
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.csproj.AssemblyReference.cache
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.GeneratedMSBuildEditorConfig.editorconfig
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.AssemblyInfoInputs.cache
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.AssemblyInfo.cs
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.csproj.CoreCompileInputs.cache
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.dll
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\refint\AlgebraCalculator.dll
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.pdb
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.genruntimeconfig.cache
+D:\repositories\AlgebraCalculator\obj\Debug\net6.0\ref\AlgebraCalculator.dll
