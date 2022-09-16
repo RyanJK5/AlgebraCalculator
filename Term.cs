@@ -1,6 +1,6 @@
 namespace AlgebraCalculator;
 
-readonly struct Term {
+readonly struct Term : IComparable<Term> {
 
     public readonly int Coefficient;
     private readonly List<Variable> variables;
@@ -19,7 +19,7 @@ readonly struct Term {
         var newArr = new List<Variable>();
         for (var i = 0; i < variables.Count; i++) {
             Variable variable = variables[i];
-            bool found = false;
+            var found = false;
             for (var j = 0; j < variables.Count; j++) {
                 if (i == j) {
                     continue;
@@ -38,6 +38,41 @@ readonly struct Term {
         }
         variables.Clear();
         variables.AddRange(newArr);
+        variables.Sort();
+    }
+
+    public static Term Parse(string str) {
+        if (str.Length == 0) {
+            throw new ArgumentException("str must have a length of at least 1");
+        }
+        if (str.Any(c => c != '-' && (!char.IsLetterOrDigit(c) || char.IsUpper(c)))) {
+            throw new ArgumentException("str must only contain lowercase letters and numbers");
+        }
+        
+
+        var newCoefficient = 1;
+        List<Variable> vars = new List<Variable>();
+
+        int letterIndex = Array.FindIndex(str.ToCharArray(), c => char.IsLower(c));
+        if (letterIndex >= 0) {
+            if (letterIndex > 0) {
+                newCoefficient = int.Parse(str.Substring(0, letterIndex));
+            }
+            int lowIndex = letterIndex;
+            int highIndex = letterIndex;
+            for (var i = letterIndex; i < str.Length; i++) {
+                highIndex = Array.FindIndex(str.ToCharArray(), lowIndex + 1, c => char.IsLower(c));
+                if (highIndex < 0) {
+                    highIndex = str.Length;
+                }
+                vars.Add(Variable.Parse(str.Substring(lowIndex, highIndex - lowIndex)));
+                lowIndex = highIndex;
+                if (highIndex == str.Length) { 
+                    break;
+                }
+            }
+        }
+        return new(newCoefficient, vars.ToArray());
     }
 
     public static Term operator *(Term t1, Term t2) {
@@ -98,7 +133,14 @@ readonly struct Term {
     }
 
     public override string ToString() {
-        string result = Coefficient != 1 ? Coefficient.ToString() : "";
+        string result = "";
+        if (Coefficient == -1) {
+            result += "-";
+        }
+        else if (Coefficient != 1) {
+            result += Coefficient;
+        }
+
         foreach (Variable variable in variables) {
             result += variable.ToString();
         }
@@ -119,4 +161,8 @@ readonly struct Term {
     }
 
     public override int GetHashCode() => HashCode.Combine(Coefficient, variables);
+
+    public int CompareTo(Term other) {
+        return -this[variables.Count - 1].CompareTo(other[other.variables.Count - 1]);
+    }
 }

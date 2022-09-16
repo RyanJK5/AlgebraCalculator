@@ -12,16 +12,10 @@ static class Util {
         ')',
     };
 
-    private static void Main() {
-        // Console.Write("Enter expression: ");
-        // string? input = Console.ReadLine();
-        // while (input != null && !ValidExpression(input)) {
-        //     Console.WriteLine("Invalid input");
-        //     input = Console.ReadLine();
-        // }
-        var term = new Term(4, (Variable) "x2", (Variable) "y");
-        var term2 = new Term(2, (Variable) "x2", (Variable) "y2");
-        Console.WriteLine(term / term2);
+    public static char[] GetValidSymbols() {
+        char[] result = new char[validSymbols.Length];
+        validSymbols.CopyTo(result, 0);
+        return result;
     }
 
     private static bool validExpression(String str) {
@@ -37,24 +31,19 @@ static class Util {
         return true;
     }
 
-    // TODO: finish createTerms method
-    private static Term[] createTerms(String str) {
-        List<Term> result = new List<Term>();
-        str.Trim();
-        
-        int startIndex = 0;
-        int endIndex = 0;
-        while (true) {
-            startIndex = endIndex;
-            
-            endIndex = Array.FindIndex(str.ToCharArray(), startIndex, c => Char.IsWhiteSpace(c));
-            if (endIndex < 0) {
-                return result.ToArray();
-            }
-            string subStr = str.Substring(startIndex, endIndex + 1);
-        }
-    }
-
     public static bool ValidChar(char c) =>
-        Char.IsLower(c) || Char.IsDigit(c) || Char.IsWhiteSpace(c) || validSymbols.Contains(c);
+        char.IsLower(c) || char.IsDigit(c) || char.IsWhiteSpace(c) || validSymbols.Contains(c);
+
+    private static void Main() {
+    Console.Write("Enter expression: ");
+    string? input = Console.ReadLine();
+    while (true) {
+        if (input != null && validExpression(input)) {
+            Console.WriteLine(Polynomial.Parse(input));
+            break;
+        }
+        Console.WriteLine("Invalid input");
+        input = Console.ReadLine();
+    }
+}
 }

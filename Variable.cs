@@ -6,7 +6,7 @@ readonly struct Variable : IComparable<Variable> {
     public readonly int Exponent;
 
     public Variable(char letter, int exponent) {
-        if (!Char.IsLower(letter)) {
+        if (!char.IsLower(letter)) {
             throw new ArgumentException("symbol must be a lowercase letter");
         }
         Letter = letter;
@@ -18,27 +18,30 @@ readonly struct Variable : IComparable<Variable> {
     public Variable() : this('x', 1) { }
 
     public int CompareTo(Variable variable) {
-        int status = Letter.CompareTo(variable.Letter);
+        int status = Exponent.CompareTo(variable.Exponent);
         if (status == 0) {
-            return Exponent.CompareTo(variable.Exponent);
+            return Letter.CompareTo(variable.Letter);
         }
         return status;
     }
 
     public static Variable Parse(string str) {
-        if (!Char.IsLower(str[0])) {
+        if (str.Length == 0) {
+            throw new ArgumentException("str must have a length greater than 0");
+        }
+        if (!char.IsLower(str[0])) {
             throw new ArgumentException("First character of str must be a lowercase letter");
         }
         for (var i = 1; i < str.Length; i++) {
-            if (!Char.IsNumber(str[i])) {
+            if (str[i] != '-' && !char.IsNumber(str[i])) {
                 throw new ArgumentException("Only one non-number character can be present in the first character of str");
             }
         }
-        return new(str[0], str.Length > 1 ? Int32.Parse(str.Substring(1)) : 1);
+        return new(str[0], str.Length > 1 ? int.Parse(str.Substring(1)) : 1);
     }
 
     public static Variable Parse(char c) {
-        if (!Char.IsLower(c)) {
+        if (!char.IsLower(c)) {
             throw new ArgumentException("c must be a lowercase letter");
         }
         return new(c);
