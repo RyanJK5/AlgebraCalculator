@@ -1,44 +1,33 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace AlgebraCalculator;
 
-readonly struct Term : IComparable<Term> {
+class Term : IComparable<Term> {
 
     public readonly int Coefficient;
-    private readonly List<Variable> variables;
+    private List<Variable> _vars;
 
     public Term(int coefficient, params Variable[] variables) {
         this.Coefficient = coefficient;
-        this.variables = new List<Variable>();
-        this.variables.AddRange(variables);
-        this.variables.Sort();
-        simplify();
+        _vars = new List<Variable>();
+        _vars.AddRange(variables);
+        Simplify();
+        _vars.Sort();
     }
 
     public Term() : this(1, new Variable[0]) { }
 
-    private void simplify() {
-        var newArr = new List<Variable>();
-        for (var i = 0; i < variables.Count; i++) {
-            Variable variable = variables[i];
-            var found = false;
-            for (var j = 0; j < variables.Count; j++) {
-                if (i == j) {
-                    continue;
-                }
-                Variable otherVar = variables[j];
-                if (variable.Letter == otherVar.Letter && newArr.Any(v => v.Letter == variable.Letter)) {
-                    int index = newArr.FindIndex(v => v.Letter == variable.Letter);
-                    newArr[index] = new Variable(newArr[index].Letter, newArr[index].Exponent + variable.Exponent);
-                    found = true;
-                    break;
-                }
+    private void Simplify() {
+        var newList = new List<Variable>();
+        foreach (var variable in _vars) {
+            Variable matchingVar = newList.Find(v => v.Symbol == variable.Symbol);
+            if (matchingVar.ValidVar()) {
+                newList[newList.IndexOf(matchingVar)] = new Variable(matchingVar.Symbol, matchingVar.Exponent + variable.Exponent);
+                continue;
             }
-            if (!found) {
-                newArr.Add(variables[i]);
-            }
+            newList.Add(variable);
         }
-        variables.Clear();
-        variables.AddRange(newArr);
-        variables.Sort();
+        _vars = newList;
     }
 
     public static Term Parse(string str) {
@@ -50,13 +39,13 @@ readonly struct Term : IComparable<Term> {
         }
         
 
-        var newCoefficient = 1;
-        List<Variable> vars = new List<Variable>();
+        var coefficient = 1;
+        var vars = new List<Variable>();
 
         int letterIndex = Array.FindIndex(str.ToCharArray(), c => char.IsLower(c));
         if (letterIndex >= 0) {
             if (letterIndex > 0) {
-                newCoefficient = int.Parse(str.Substring(0, letterIndex));
+                coefficient = int.Parse(str[..letterIndex]);
             }
             int lowIndex = letterIndex;
             int highIndex = letterIndex;
@@ -65,54 +54,54 @@ readonly struct Term : IComparable<Term> {
                 if (highIndex < 0) {
                     highIndex = str.Length;
                 }
-                vars.Add(Variable.Parse(str.Substring(lowIndex, highIndex - lowIndex)));
+                vars.Add(Variable.Parse(str[lowIndex..highIndex]));
                 lowIndex = highIndex;
                 if (highIndex == str.Length) { 
                     break;
                 }
             }
         }
-        return new(newCoefficient, vars.ToArray());
+        return new(coefficient, vars.ToArray());
     }
 
     public static Term operator *(Term t1, Term t2) {
         int newCoefficient = t1.Coefficient * t2.Coefficient;
-        var newVariables = new Variable[t1.variables.Count + t2.variables.Count];
+        var newVariables = new Variable[t1._vars.Count + t2._vars.Count];
         Term[] terms = {t1, t2};
         for (var i = 0; i < 2; i++) {
-            for (var j = 0; j < terms[i].variables.Count; j++) {
-                newVariables[j + (i == 0 ? 0 : terms[0].variables.Count)] = terms[i][j]; 
+            for (var j = 0; j < terms[i]._vars.Count; j++) {
+                newVariables[j + (i == 0 ? 0 : terms[0]._vars.Count)] = terms[i][j]; 
             }
         }
         return new(newCoefficient, newVariables);
     }
 
     public static Term? operator /(Term t1, Term t2) {
-        if (t1.Coefficient % t2.Coefficient != 0 || t1.variables.Count != t2.variables.Count) {
+        if (t1.Coefficient % t2.Coefficient != 0 || t1._vars.Count != t2._vars.Count) {
             return null;
         }
 
         int newCoefficient = t1.Coefficient / t2.Coefficient;
         var newVars = new List<Variable>();
-        for (var i = 0; i < t1.variables.Count; i++) {
-            if (t1[i].Letter != t2[i].Letter) {
+        for (var i = 0; i < t1._vars.Count; i++) {
+            if (t1[i].Symbol != t2[i].Symbol) {
                 return null;
             }
 
             int newExponent = t1[i].Exponent - t2[i].Exponent;
             if (newExponent != 0) {
-                newVars.Add(new(t1[i].Letter, newExponent));
+                newVars.Add(new(t1[i].Symbol, newExponent));
             } 
         }
         return new(newCoefficient, newVars.ToArray());
     }
 
     public static Term? operator +(Term t1, Term t2) {
-        if (t1.variables.Count != t2.variables.Count) {
+        if (t1._vars.Count != t2._vars.Count) {
             return null;
         }
         var vars = new List<Variable>();
-        for (var i = 0; i < t1.variables.Count; i++) {
+        for (var i = 0; i < t1._vars.Count; i++) {
             if (t1[i] != t2[i]) {
                 return null;
             }
@@ -122,14 +111,14 @@ readonly struct Term : IComparable<Term> {
     }
 
     public static Term? operator -(Term t1, Term t2) =>
-        t1 + new Term(-t2.Coefficient, t2.variables.ToArray());
+        t1 + new Term(-t2.Coefficient, t2._vars.ToArray());
 
     public static bool operator ==(Term t1, Term t2) => t1.Equals(t2);
 
     public static bool operator !=(Term t1, Term t2) => !t1.Equals(t2);
 
     public Variable this[int index] {
-        get => variables[index];
+        get => _vars[index];
     }
 
     public override string ToString() {
@@ -141,28 +130,31 @@ readonly struct Term : IComparable<Term> {
             result += Coefficient;
         }
 
-        foreach (Variable variable in variables) {
+        foreach (Variable variable in _vars) {
             result += variable.ToString();
         }
         return result;
     }
 
     public override bool Equals(object? obj) {
-        if (obj !is Term || obj == null) {
+        if (obj is not Term || obj == null) {
             return false;
         }
         Term term = (Term) obj;
-        for (var i = 0; i < variables.Count; i++) {
-            if (variables[i] != term[i]) {
+        for (var i = 0; i < _vars.Count; i++) {
+            if (_vars[i] != term[i]) {
                 return false;
             }
         }
         return Coefficient == term.Coefficient;
     }
 
-    public override int GetHashCode() => HashCode.Combine(Coefficient, variables);
-
-    public int CompareTo(Term other) {
-        return -this[variables.Count - 1].CompareTo(other[other.variables.Count - 1]);
+    public override int GetHashCode() => HashCode.Combine(Coefficient, _vars);
+  
+    public int CompareTo(Term? other) {
+        if (other is null) {
+            throw new NullReferenceException("other must not be null");
+        }
+        return other[other._vars.Count - 1].CompareTo(this[_vars.Count - 1]);
     }
 }

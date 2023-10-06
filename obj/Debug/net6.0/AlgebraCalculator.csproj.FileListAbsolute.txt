@@ -13,3 +13,18 @@ D:\repositories\AlgebraCalculator\obj\Debug\net6.0\refint\AlgebraCalculator.dll
 D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.pdb
 D:\repositories\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.genruntimeconfig.cache
 D:\repositories\AlgebraCalculator\obj\Debug\net6.0\ref\AlgebraCalculator.dll
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.exe
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.deps.json
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.runtimeconfig.json
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.dll
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\bin\Debug\net6.0\AlgebraCalculator.pdb
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.csproj.AssemblyReference.cache
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.AssemblyInfoInputs.cache
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.AssemblyInfo.cs
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.csproj.CoreCompileInputs.cache
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.dll
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\refint\AlgebraCalculator.dll
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.pdb
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\AlgebraCalculator.genruntimeconfig.cache
+C:\Users\ryan.keane.MSD\OneDrive - Massapequa Public Schools\Desktop\AlgebraCalculator\obj\Debug\net6.0\ref\AlgebraCalculator.dll

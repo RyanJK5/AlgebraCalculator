@@ -35,15 +35,15 @@ static class Util {
         char.IsLower(c) || char.IsDigit(c) || char.IsWhiteSpace(c) || validSymbols.Contains(c);
 
     private static void Main() {
-    Console.Write("Enter expression: ");
-    string? input = Console.ReadLine();
-    while (true) {
-        if (input != null && validExpression(input)) {
-            Console.WriteLine(Polynomial.Parse(input));
-            break;
+        Console.Write("Enter expression: ");
+        string? input = Console.ReadLine();
+        while (true) {
+            if (input != null && validExpression(input)) {
+                Console.WriteLine(Polynomial.Parse(input));
+                break;
+            }
+            Console.WriteLine("Invalid input");
+            input = Console.ReadLine();
         }
-        Console.WriteLine("Invalid input");
-        input = Console.ReadLine();
     }
-}
 }

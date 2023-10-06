@@ -1,28 +1,31 @@
+using System.Data.Common;
+
 namespace AlgebraCalculator;
 
 readonly struct Variable : IComparable<Variable> {
 
-    public readonly char Letter;
+    public readonly char Symbol;
     public readonly int Exponent;
 
-    public Variable(char letter, int exponent) {
-        if (!char.IsLower(letter)) {
+    public Variable(char symbol, int exponent) {
+        if (!char.IsLower(symbol)) {
             throw new ArgumentException("symbol must be a lowercase letter");
         }
-        Letter = letter;
+        Symbol = symbol;
         Exponent = exponent;
     }
 
-    public Variable(char letter) : this(letter, 1) { }
+    public Variable(char symbol) : this(symbol, 1) { }
 
-    public Variable() : this('x', 1) { }
+    public Variable() : this('?', 1) { }
+
+    public bool ValidVar() => char.IsLower(Symbol);
 
     public int CompareTo(Variable variable) {
-        int status = Exponent.CompareTo(variable.Exponent);
-        if (status == 0) {
-            return Letter.CompareTo(variable.Letter);
+        if (!ValidVar() || !variable.ValidVar()) {
+            throw new ArgumentException("Invalid variable type");
         }
-        return status;
+        return Symbol.CompareTo(variable.Symbol);
     }
 
     public static Variable Parse(string str) {
@@ -52,14 +55,14 @@ readonly struct Variable : IComparable<Variable> {
     public static explicit operator Variable(char c) => Parse(c);
 
     public override string ToString() =>
-        Letter.ToString() + (Exponent != 1 ? Exponent.ToString() : "");
+        Symbol + (Exponent != 1 ? Exponent.ToString() : "");
 
-    public override bool Equals(object? obj) =>
-        obj != null && obj is Variable variable && Letter == variable.Letter && Exponent == variable.Exponent
+    public override bool Equals(object? obj) => 
+        obj != null && obj is Variable variable && Symbol == variable.Symbol && Exponent == variable.Exponent
     ;
 
     public override int GetHashCode() =>
-        HashCode.Combine(Letter, Exponent)
+        HashCode.Combine(Symbol, Exponent)
     ;
 
     public static bool operator ==(Variable var1, Variable var2) =>
