@@ -68,11 +68,14 @@ class Term : IComparable<Term> {
                 }
             }
         }
+        else {
+            coefficient = int.Parse(str);
+        }
         return new(coefficient, vars.ToArray());
     }
 
     public static bool IsTerm(string str) =>
-        (char.IsNumber(str[0]) || char.IsLower(str[0]) || AdditiveSymbol(str[0])) && str[1..].All(c => char.IsNumber(c) || char.IsLower(c));
+        (char.IsNumber(str[0]) || char.IsLower(str[0]) || AdditiveSymbol(str[0])) && (str.Length == 1 || str[1..].All(c => char.IsNumber(c) || char.IsLower(c)));
 
     public static bool AdditiveSymbol(char c) => c == '+' || c == '-';
 
