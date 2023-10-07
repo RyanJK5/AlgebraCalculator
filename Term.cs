@@ -7,9 +7,17 @@ class Term : IComparable<Term> {
     public readonly int Coefficient;
     private List<Variable> _vars;
 
+    public Variable[] Vars { 
+        get => _vars.ToArray();
+    }
+
     public Term(int coefficient, params Variable[] variables) {
-        this.Coefficient = coefficient;
+        Coefficient = coefficient;
         _vars = new List<Variable>();
+        if (Coefficient == 0) {
+            return;
+        }
+        
         _vars.AddRange(variables);
         Simplify();
         _vars.Sort();
@@ -34,11 +42,10 @@ class Term : IComparable<Term> {
         if (str.Length == 0) {
             throw new ArgumentException("str must have a length of at least 1");
         }
-        if (str.Any(c => c != '-' && (!char.IsLetterOrDigit(c) || char.IsUpper(c)))) {
+        if (str.Any(c => !AdditiveSymbol(c) && (!char.IsLetterOrDigit(c) || char.IsUpper(c)))) {
             throw new ArgumentException("str must only contain lowercase letters and numbers");
         }
         
-
         var coefficient = 1;
         var vars = new List<Variable>();
 
@@ -63,6 +70,11 @@ class Term : IComparable<Term> {
         }
         return new(coefficient, vars.ToArray());
     }
+
+    public static bool IsTerm(string str) =>
+        (char.IsNumber(str[0]) || char.IsLower(str[0]) || AdditiveSymbol(str[0])) && str[1..].All(c => char.IsNumber(c) || char.IsLower(c));
+
+    public static bool AdditiveSymbol(char c) => c == '+' || c == '-';
 
     public static Term operator *(Term t1, Term t2) {
         int newCoefficient = t1.Coefficient * t2.Coefficient;

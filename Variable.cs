@@ -36,7 +36,7 @@ readonly struct Variable : IComparable<Variable> {
             throw new ArgumentException("First character of str must be a lowercase letter");
         }
         for (var i = 1; i < str.Length; i++) {
-            if (str[i] != '-' && !char.IsNumber(str[i])) {
+            if (!Term.AdditiveSymbol(str[i]) && !char.IsNumber(str[i])) {
                 throw new ArgumentException("Only one non-number character can be present in the first character of str");
             }
         }
