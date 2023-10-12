@@ -23,7 +23,9 @@ class Term : IComparable<Term> {
         _vars.Sort();
     }
 
-    public Term() : this(1, new Variable[0]) { }
+    public Term(params Variable[] variables) : this(1, variables) { }
+
+    public Term() : this(new Variable[0]) { }
 
     private void Simplify() {
         var newList = new List<Variable>();
@@ -36,6 +38,18 @@ class Term : IComparable<Term> {
             newList.Add(variable);
         }
         _vars = newList;
+    }
+
+    public static bool SameVariableSet(Term a, Term b) {
+        if (a._vars.Count != b._vars.Count) {
+            return false;
+        }
+        for (var i = 0; i < a._vars.Count; i++) {
+            if (a[i] != b[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static Term Parse(string str) {
@@ -112,17 +126,10 @@ class Term : IComparable<Term> {
     }
 
     public static Term? operator +(Term t1, Term t2) {
-        if (t1._vars.Count != t2._vars.Count) {
+        if (!SameVariableSet(t1, t2)) {
             return null;
         }
-        var vars = new List<Variable>();
-        for (var i = 0; i < t1._vars.Count; i++) {
-            if (t1[i] != t2[i]) {
-                return null;
-            }
-            vars.Add(t1[i]);
-        }
-        return new(t1.Coefficient + t2.Coefficient, vars.ToArray());
+        return new(t1.Coefficient + t2.Coefficient, t1._vars.ToArray());
     }
 
     public static Term? operator -(Term t1, Term t2) =>

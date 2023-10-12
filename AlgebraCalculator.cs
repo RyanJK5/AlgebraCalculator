@@ -96,11 +96,10 @@ public class AlgebraCalculator {
 
     private List<string> Simplify(List<string> tokens, int startIndex, int endIndex) {
         for (var i = startIndex; i <= endIndex; i++) {
-            if (tokens[i] == OpenDelimeter)
-            {
+            if (tokens[i] == OpenDelimeter) {
                 int oldCount = tokens.Count;
                 Simplify(tokens, i + 1, IndexOfCloseDelimeter(tokens, i, endIndex) - 1);
-                endIndex -= (oldCount - tokens.Count);
+                endIndex -= oldCount - tokens.Count;
                 tokens.RemoveAt(IndexOfCloseDelimeter(tokens, i, endIndex));
                 tokens.RemoveAt(i);
                 endIndex -= 2;
