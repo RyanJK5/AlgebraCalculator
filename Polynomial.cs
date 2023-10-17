@@ -8,6 +8,7 @@ class Polynomial {
     public Polynomial(params Term[] terms) {
         Terms = new();
         Terms.AddRange(terms);
+        Simplify();
     }
 
     public override string ToString() {
@@ -26,22 +27,25 @@ class Polynomial {
         foreach (Term term in Terms) {
             Term? matchingTerm = newList.Find(t => Term.SameVariableSet(t, term));
             if (matchingTerm is not null) {
-                newList[newList.IndexOf(matchingTerm)] = new Term(matchingTerm);
-                continue;
+                Term? sumTerm = matchingTerm + term;
+                if (sumTerm is not null) {
+                    newList[newList.IndexOf(matchingTerm)] = sumTerm;
+                   continue;
+                }
             }
-            newList.Add(variable);
+            newList.Add(term);
         }
-        _vars = newList;
+        Terms = newList;
     }
 
     public static Polynomial operator *(Polynomial a, Polynomial b) {
-        var newPoly = new Polynomial();
+        var newPolyList = new List<Term>();
         foreach (Term term in a.Terms) {
             foreach (Term term2 in b.Terms) {
-                newPoly.Terms.Add(term * term2);                
+                newPolyList.Add(term * term2);                
             }
         }
-        return newPoly;
+        return new Polynomial(newPolyList.ToArray());
     }
 
     public static Polynomial operator +(Polynomial a, Polynomial b) {
@@ -65,4 +69,15 @@ class Polynomial {
         }
         return new Polynomial(newPolyList.ToArray());
     }
+
+    public static Polynomial operator -(Polynomial a) {
+        var newPolyList = new List<Term>();
+        foreach (Term term in a.Terms) {
+            newPolyList.Add(new Term(-term.Coefficient, term.Vars));
+        }
+        return new Polynomial(newPolyList.ToArray());
+    }
+
+    public static Polynomial operator -(Polynomial a, Polynomial b) =>
+        a + -b;
 }
