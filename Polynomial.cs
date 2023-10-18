@@ -50,23 +50,8 @@ class Polynomial {
 
     public static Polynomial operator +(Polynomial a, Polynomial b) {
         var newPolyList = new List<Term>();
-        foreach (Term term in a.Terms) {
-            foreach (Term term2 in b.Terms) {
-                Term? sum = term + term2;
-                if (sum is null) {
-                    continue;
-                }
-                int index = newPolyList.FindIndex(t => Term.SameVariableSet(t, term));
-                if (index >= 0) {
-                    Term? result = newPolyList[index] + sum;
-                    if (result is not null) {
-                        newPolyList[index] = result;
-                    }
-                    continue;
-                }
-                newPolyList.Add(sum);
-            }
-        }
+        newPolyList.AddRange(a.Terms);
+        newPolyList.AddRange(b.Terms);
         return new Polynomial(newPolyList.ToArray());
     }
 
