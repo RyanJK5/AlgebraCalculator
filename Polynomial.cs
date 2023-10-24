@@ -11,6 +11,12 @@ class Polynomial {
         Simplify();
     }
 
+    public Polynomial(List<Term> terms) {
+        Terms = new();
+        Terms.AddRange(terms);
+        Simplify();
+    }
+
     public override string ToString() {
         string result = "";
         for (var i = 0; i < Terms.Count; i++) {
@@ -35,7 +41,20 @@ class Polynomial {
             }
             newList.Add(term);
         }
+        newList.Sort();
         Terms = newList;
+    }
+
+    public static Polynomial Parse(string str) {
+        var termList = new List<Term>();
+        for (var i = 0; i < str.Length; i++) {
+            if (str[i] == '+' || str[i] == '-') {
+                termList.Add(Term.Parse(str[0..i]));
+                str = str[i..];
+            }
+        }
+        termList.Add(Term.Parse(str));
+        return new Polynomial(termList);
     }
 
     public static Polynomial operator *(Polynomial a, Polynomial b) {
@@ -45,14 +64,14 @@ class Polynomial {
                 newPolyList.Add(term * term2);                
             }
         }
-        return new Polynomial(newPolyList.ToArray());
+        return new Polynomial(newPolyList);
     }
 
     public static Polynomial operator +(Polynomial a, Polynomial b) {
         var newPolyList = new List<Term>();
         newPolyList.AddRange(a.Terms);
         newPolyList.AddRange(b.Terms);
-        return new Polynomial(newPolyList.ToArray());
+        return new Polynomial(newPolyList);
     }
 
     public static Polynomial operator -(Polynomial a) {
@@ -60,7 +79,7 @@ class Polynomial {
         foreach (Term term in a.Terms) {
             newPolyList.Add(new Term(-term.Coefficient, term.Vars));
         }
-        return new Polynomial(newPolyList.ToArray());
+        return new Polynomial(newPolyList);
     }
 
     public static Polynomial operator -(Polynomial a, Polynomial b) =>

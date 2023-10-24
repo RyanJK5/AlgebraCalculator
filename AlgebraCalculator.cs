@@ -91,37 +91,55 @@ public class AlgebraCalculator {
         return -1;
     }
 
-    public List<string> Simplify(List<string> tokens) => 
-        Simplify(tokens, 0, tokens.Count - 1);
+    public List<string> Simplify(List<string> tokens) {
+        while (tokens.Contains(OpenDelimeter)) {
+            int deepestIndex = FindDeepestPolynomialIndex(tokens);
 
-    private List<string> Simplify(List<string> tokens, int startIndex, int endIndex) {
-        for (var i = startIndex; i <= endIndex; i++) {
-            if (tokens[i] == OpenDelimeter) {
-                int oldCount = tokens.Count;
-                Simplify(tokens, i + 1, IndexOfCloseDelimeter(tokens, i, endIndex) - 1);
-                endIndex -= oldCount - tokens.Count;
-                tokens.RemoveAt(IndexOfCloseDelimeter(tokens, i, endIndex));
-                tokens.RemoveAt(i);
-                endIndex -= 2;
-            }
+            int rangeStart = deepestIndex + 1;
+            int rangeEnd = tokens.IndexOf(CloseDelimeter, rangeStart);
+            
+            ExecuteOperations(tokens, rangeStart, ref rangeEnd, CreateDictionary(new string[] {"*", "/"}, 
+                new Func<Term, Term, Term?>[] {(a, b) => a * b, (a, b) => a / b}), Term.Parse);
+                
+            tokens[deepestIndex] = string.Concat(tokens.GetRange(rangeStart, rangeEnd - rangeStart));
+            tokens.RemoveRange(rangeStart, rangeEnd - rangeStart + 1);
         }
-        ExecuteOperations(tokens, startIndex, ref endIndex, CreateDictionary(new string[] {"*", "/"}, 
-            new Func<Term, Term, Term?>[] {(a, b) => a * b, (a, b) => a / b}));
-        ExecuteOperations(tokens, startIndex, ref endIndex, CreateDictionary(new string[] {"+", "-"}, 
-            new Func<Term, Term, Term?>[] {(a, b) => a + b, (a, b) => a - b}));
+
+        int endIndex = tokens.Count - 1;
+        ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"*"}, 
+            new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
+
         return tokens;
     }
 
-    private void ExecuteOperations(List<string> tokens, int startIndex, ref int endIndex, 
-        Dictionary<string, Func<Term, Term, Term?>> symbolsToOperations) {
+    private int FindDeepestPolynomialIndex(List<string> tokens) {
+        int layersDown = 0;
+        int maxLayersDown = 0;
+        int maxLayerIndex = -1;
+        for (var i = 0; i < tokens.Count; i++) {
+            if (tokens[i] == OpenDelimeter) {
+                layersDown++;
+            }
+            else if (tokens[i] == CloseDelimeter) {
+                maxLayersDown = layersDown;
+                maxLayerIndex = tokens.LastIndexOf(OpenDelimeter, i);
+                layersDown = 0;
+            }
+        }
+        return maxLayerIndex;
+    }
+
+    private void ExecuteOperations<T>(List<string> tokens, int startIndex, ref int endIndex, 
+        Dictionary<string, Func<T, T, T?>> symbolsToOperations, Func<string, T> parseMethod) {
         for (var i = startIndex; i < endIndex; i++) {
             foreach (string symbol in symbolsToOperations.Keys) {
                 if (tokens[i] == symbol) {
-                    Term? result = symbolsToOperations[symbol].Invoke(Term.Parse(tokens[i - 1]), Term.Parse(tokens[i + 1]));
-                    if (result is null) {
-                        continue;
+                    T? result = symbolsToOperations[symbol].Invoke(parseMethod.Invoke(tokens[i - 1]), parseMethod.Invoke(tokens[i + 1]));
+                    string? resultStr = result?.ToString();
+                    if (result is null || resultStr is null) {
+                        continue;    
                     }
-                    tokens[i - 1] = result.ToString();
+                    tokens[i - 1] = resultStr;
                     tokens.RemoveAt(i + 1);
                     tokens.RemoveAt(i);
                     endIndex -= 2;
@@ -150,7 +168,7 @@ public class AlgebraCalculator {
             return;
         }
         Simplify(tokens);
-        foreach (var token in tokens) {
+        foreach (string token in tokens) {
             Console.Write(token);
         }
     }

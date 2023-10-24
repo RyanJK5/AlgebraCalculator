@@ -66,7 +66,12 @@ class Term : IComparable<Term> {
         int letterIndex = Array.FindIndex(str.ToCharArray(), c => char.IsLower(c));
         if (letterIndex >= 0) {
             if (letterIndex > 0) {
-                coefficient = int.Parse(str[..letterIndex]);
+                if (str[..letterIndex] == "-") {
+                    coefficient = -1;
+                }
+                else if (str[..letterIndex] != "+") {
+                    coefficient = int.Parse(str[..letterIndex]);
+                }
             }
             int lowIndex = letterIndex;
             int highIndex = letterIndex;
@@ -89,7 +94,9 @@ class Term : IComparable<Term> {
     }
 
     public static bool IsTerm(string str) =>
-        (char.IsNumber(str[0]) || char.IsLower(str[0]) || AdditiveSymbol(str[0])) && (str.Length == 1 || str[1..].All(c => char.IsNumber(c) || char.IsLower(c)));
+        str.Length > 0 && 
+        (char.IsNumber(str[0]) || char.IsLower(str[0]) || AdditiveSymbol(str[0])) && 
+        (str.Length == 1 || str[1..].All(c => char.IsNumber(c) || char.IsLower(c)));
 
     public static bool AdditiveSymbol(char c) => c == '+' || c == '-';
 
@@ -177,6 +184,9 @@ class Term : IComparable<Term> {
         if (other is null) {
             throw new NullReferenceException("other must not be null");
         }
-        return other[other._vars.Count - 1].CompareTo(this[_vars.Count - 1]);
+        if (_vars.Count == 0 || other._vars.Count == 0) {
+            return -_vars.Count.CompareTo(other._vars.Count);
+        }
+        return -other[0].CompareTo(this[0]);
     }
 }
