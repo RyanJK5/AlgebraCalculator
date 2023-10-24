@@ -25,7 +25,7 @@ class Term : IComparable<Term> {
 
     public Term(params Variable[] variables) : this(1, variables) { }
 
-    public Term() : this(new Variable[0]) { }
+    public Term() : this(Array.Empty<Variable>()) { }
 
     private void Simplify() {
         var newList = new List<Variable>();
@@ -59,7 +59,11 @@ class Term : IComparable<Term> {
         if (str.Any(c => !AdditiveSymbol(c) && (!char.IsLetterOrDigit(c) || char.IsUpper(c)))) {
             throw new ArgumentException("str must only contain lowercase letters and numbers");
         }
-        
+    
+        if (str[0] == '+') {
+            str = str[1..];
+        }
+
         var coefficient = 1;
         var vars = new List<Variable>();
 
@@ -94,9 +98,7 @@ class Term : IComparable<Term> {
     }
 
     public static bool IsTerm(string str) =>
-        str.Length > 0 && 
-        (char.IsNumber(str[0]) || char.IsLower(str[0]) || AdditiveSymbol(str[0])) && 
-        (str.Length == 1 || str[1..].All(c => char.IsNumber(c) || char.IsLower(c)));
+        str.Length > 0 && str.All(c => char.IsNumber(c) || char.IsLetter(c) || (str.IndexOf(c) == 0 && AdditiveSymbol(c) && str.Length > 1));
 
     public static bool AdditiveSymbol(char c) => c == '+' || c == '-';
 
@@ -166,16 +168,11 @@ class Term : IComparable<Term> {
     }
 
     public override bool Equals(object? obj) {
-        if (obj is not Term || obj == null) {
+        if (obj is not Term || obj is null) {
             return false;
         }
         Term term = (Term) obj;
-        for (var i = 0; i < _vars.Count; i++) {
-            if (_vars[i] != term[i]) {
-                return false;
-            }
-        }
-        return Coefficient == term.Coefficient;
+        return SameVariableSet(this, term) && Coefficient == term.Coefficient;
     }
 
     public override int GetHashCode() => HashCode.Combine(Coefficient, _vars);

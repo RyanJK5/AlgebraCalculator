@@ -1,6 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace AlgebraCalculator;
+
 class Polynomial {
 
     private List<Term> Terms;
@@ -47,7 +46,7 @@ class Polynomial {
 
     public static Polynomial Parse(string str) {
         var termList = new List<Term>();
-        for (var i = 0; i < str.Length; i++) {
+        for (var i = 1; i < str.Length; i++) {
             if (str[i] == '+' || str[i] == '-') {
                 termList.Add(Term.Parse(str[0..i]));
                 str = str[i..];

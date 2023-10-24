@@ -14,20 +14,20 @@ public class AlgebraCalculator {
     private const string OpenDelimeter = "(";
     private const string CloseDelimeter = ")";
 
-    private char[] GetValidSymbols() {
+    private static char[] GetValidSymbols() {
         char[] result = new char[validSymbols.Length];
         validSymbols.CopyTo(result, 0);
         return result;
     }
 
-    private bool ValidExpression(string str) =>
+    private static bool ValidExpression(string str) =>
         str != null && str.Length != 0 && str.ToCharArray().All(ValidChar)
     ;
 
-    public bool ValidChar(char c) =>
+    public static bool ValidChar(char c) =>
         char.IsLower(c) || char.IsDigit(c) || char.IsWhiteSpace(c) || validSymbols.Contains(c);
 
-    private string RemoveWhiteSpaces(string str) {
+    private static string RemoveWhiteSpaces(string str) {
         for (var i = 0; i < str.Length; i++) {
             if (char.IsWhiteSpace(str[i])) {
                 str = str.Remove(i, 1);
@@ -57,7 +57,7 @@ public class AlgebraCalculator {
         return result;
     }
 
-    private void AddMultiplicationSymbols(List<string> tokens) {
+    private static void AddMultiplicationSymbols(List<string> tokens) {
         for (var i = 0; i < tokens.Count; i++) {
             if (tokens[i] == OpenDelimeter) {
                 if (IndexOfCloseDelimeter(tokens, i, tokens.Count - 1) < 0) {
@@ -75,7 +75,7 @@ public class AlgebraCalculator {
         }
     }
 
-    private int IndexOfCloseDelimeter(List<string> tokens, int delimIndex, int endIndex) {
+    private static int IndexOfCloseDelimeter(List<string> tokens, int delimIndex, int endIndex) {
         int delimTotal = 1;
         for (var j = delimIndex + 1; j <= endIndex; j++) {
             if (tokens[j] == OpenDelimeter) {
@@ -91,15 +91,15 @@ public class AlgebraCalculator {
         return -1;
     }
 
-    public List<string> Simplify(List<string> tokens) {
+    public static List<string> Simplify(List<string> tokens) {
         while (tokens.Contains(OpenDelimeter)) {
             int deepestIndex = FindDeepestPolynomialIndex(tokens);
 
             int rangeStart = deepestIndex + 1;
             int rangeEnd = tokens.IndexOf(CloseDelimeter, rangeStart);
-            
-            ExecuteOperations(tokens, rangeStart, ref rangeEnd, CreateDictionary(new string[] {"*", "/"}, 
-                new Func<Term, Term, Term?>[] {(a, b) => a * b, (a, b) => a / b}), Term.Parse);
+
+            ExecuteOperations(tokens, rangeStart, ref rangeEnd, CreateDictionary(new string[] {"*"}, 
+                new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
                 
             tokens[deepestIndex] = string.Concat(tokens.GetRange(rangeStart, rangeEnd - rangeStart));
             tokens.RemoveRange(rangeStart, rangeEnd - rangeStart + 1);
@@ -108,11 +108,13 @@ public class AlgebraCalculator {
         int endIndex = tokens.Count - 1;
         ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"*"}, 
             new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
+        ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"+", "-"}, 
+            new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a + b, (a, b) => a - b}), Polynomial.Parse);
 
         return tokens;
     }
 
-    private int FindDeepestPolynomialIndex(List<string> tokens) {
+    private static int FindDeepestPolynomialIndex(List<string> tokens) {
         int layersDown = 0;
         int maxLayersDown = 0;
         int maxLayerIndex = -1;
@@ -120,7 +122,7 @@ public class AlgebraCalculator {
             if (tokens[i] == OpenDelimeter) {
                 layersDown++;
             }
-            else if (tokens[i] == CloseDelimeter) {
+            else if (tokens[i] == CloseDelimeter && layersDown > maxLayersDown) {
                 maxLayersDown = layersDown;
                 maxLayerIndex = tokens.LastIndexOf(OpenDelimeter, i);
                 layersDown = 0;
@@ -129,7 +131,7 @@ public class AlgebraCalculator {
         return maxLayerIndex;
     }
 
-    private void ExecuteOperations<T>(List<string> tokens, int startIndex, ref int endIndex, 
+    private static void ExecuteOperations<T>(List<string> tokens, int startIndex, ref int endIndex, 
         Dictionary<string, Func<T, T, T?>> symbolsToOperations, Func<string, T> parseMethod) {
         for (var i = startIndex; i < endIndex; i++) {
             foreach (string symbol in symbolsToOperations.Keys) {
@@ -150,7 +152,7 @@ public class AlgebraCalculator {
         }
     }
 
-    private Dictionary<K, V> CreateDictionary<K, V>(K[] keys, V[] values) where K : notnull {
+    private static Dictionary<K, V> CreateDictionary<K, V>(K[] keys, V[] values) where K : notnull {
         if (values.Length != keys.Length) {
             throw new ArgumentException("values and keys must have same length");
         }
@@ -173,7 +175,7 @@ public class AlgebraCalculator {
         }
     }
 
-    private bool ValidExpresion(List<string> tokens) {
+    private static bool ValidExpresion(List<string> tokens) {
         if (tokens == null) {
             throw new NullReferenceException();
         }
