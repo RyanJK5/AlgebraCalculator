@@ -20,7 +20,7 @@ class Term : IComparable<Term> {
         
         _vars.AddRange(variables);
         Simplify();
-        _vars.Sort();
+        _vars.Sort((a, b) => -a.CompareTo(b));
     }
 
     public Term(params Variable[] variables) : this(1, variables) { }
@@ -184,6 +184,6 @@ class Term : IComparable<Term> {
         if (_vars.Count == 0 || other._vars.Count == 0) {
             return -_vars.Count.CompareTo(other._vars.Count);
         }
-        return -other[0].CompareTo(this[0]);
+        return other[0].CompareTo(this[0]);
     }
 }

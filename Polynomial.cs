@@ -33,6 +33,10 @@ class Polynomial {
             Term? matchingTerm = newList.Find(t => Term.SameVariableSet(t, term));
             if (matchingTerm is not null) {
                 Term? sumTerm = matchingTerm + term;
+                if (sumTerm?.Coefficient == 0) {
+                    newList.Remove(matchingTerm);
+                    continue;
+                }
                 if (sumTerm is not null) {
                     newList[newList.IndexOf(matchingTerm)] = sumTerm;
                    continue;
@@ -50,6 +54,7 @@ class Polynomial {
             if (str[i] == '+' || str[i] == '-') {
                 termList.Add(Term.Parse(str[0..i]));
                 str = str[i..];
+                i = 1;
             }
         }
         termList.Add(Term.Parse(str));
