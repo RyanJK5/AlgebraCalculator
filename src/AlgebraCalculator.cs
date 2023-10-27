@@ -14,12 +14,6 @@ public class AlgebraCalculator {
     private const string OpenDelimeter = "(";
     private const string CloseDelimeter = ")";
 
-    private static char[] GetValidSymbols() {
-        char[] result = new char[validSymbols.Length];
-        validSymbols.CopyTo(result, 0);
-        return result;
-    }
-
     private static bool ValidExpression(string str) =>
         str != null && str.Length != 0 && str.ToCharArray().All(ValidChar)
     ;
@@ -37,7 +31,7 @@ public class AlgebraCalculator {
         return str;
     }
 
-    private List<string> CreateTokens(string str) {
+    private static List<string> CreateTokens(string str) {
         var result = new List<string>();
         var tokenStartIndex = 0;
         for (var i = 0; i < str.Length; i++) {
@@ -92,6 +86,8 @@ public class AlgebraCalculator {
     }
 
     public static List<string> Simplify(List<string> tokens) {
+        // working on (a+b(3-ab+a2)-(2(a-1)(2+3)))
+        
         while (tokens.Contains(OpenDelimeter)) {
             int deepestIndex = FindDeepestPolynomialIndex(tokens);
 
@@ -99,8 +95,10 @@ public class AlgebraCalculator {
             int rangeEnd = tokens.IndexOf(CloseDelimeter, rangeStart);
 
             ExecuteOperations(tokens, rangeStart, ref rangeEnd, CreateDictionary(new string[] {"*"}, 
-                new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
-                
+                              new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
+            ExecuteOperations(tokens, rangeStart, ref rangeEnd, CreateDictionary(new string[] {"+", "-"}, 
+                              new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a + b, (a, b) => a - b}), Polynomial.Parse);
+
             tokens[deepestIndex] = string.Concat(tokens.GetRange(rangeStart, rangeEnd - rangeStart));
             tokens.RemoveRange(rangeStart, rangeEnd - rangeStart + 1);
         }
@@ -132,7 +130,7 @@ public class AlgebraCalculator {
     }
 
     private static void ExecuteOperations<T>(List<string> tokens, int startIndex, ref int endIndex, 
-        Dictionary<string, Func<T, T, T?>> symbolsToOperations, Func<string, T> parseMethod) {
+                                             Dictionary<string, Func<T, T, T?>> symbolsToOperations, Func<string, T> parseMethod) {
         for (var i = startIndex; i < endIndex; i++) {
             foreach (string symbol in symbolsToOperations.Keys) {
                 if (tokens[i] == symbol) {
@@ -163,7 +161,7 @@ public class AlgebraCalculator {
         return result;
     }
 
-    private void Parse(string str) {
+    private static void Parse(string str) {
         List<string> tokens = CreateTokens(str);
         if (!ValidExpresion(tokens)) {
             Console.WriteLine("SYNTAX ERROR");

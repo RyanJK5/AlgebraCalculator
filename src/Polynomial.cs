@@ -4,6 +4,8 @@ class Polynomial {
 
     private List<Term> Terms;
 
+    public int TermCount { get => Terms.Count; }
+
     public Polynomial(params Term[] terms) {
         Terms = new();
         Terms.AddRange(terms);
@@ -27,7 +29,7 @@ class Polynomial {
         return result;
     }
 
-    private void Simplify() {
+    private void  Simplify() {
         var newList = new List<Term>();
         foreach (Term term in Terms) {
             Term? matchingTerm = newList.Find(t => Term.SameVariableSet(t, term));

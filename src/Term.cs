@@ -156,8 +156,11 @@ class Term : IComparable<Term> {
         string result = "";
         if (Coefficient == -1) {
             result += "-";
+            if (_vars.Count == 0) {
+                result += "1";
+            }
         }
-        else if (Coefficient != 1) {
+        else if (_vars.Count == 0 || Coefficient != 1) {
             result += Coefficient;
         }
 
