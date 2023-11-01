@@ -25,10 +25,10 @@ readonly struct Variable : IComparable<Variable> {
         if (!ValidVar() || !variable.ValidVar()) {
             throw new ArgumentException("Invalid variable type");
         }
-        if (Symbol == variable.Symbol) {
-            return Exponent.CompareTo(variable.Exponent);
+        if (Exponent == variable.Exponent) {
+            return -Symbol.CompareTo(variable.Symbol);
         }
-        return -Symbol.CompareTo(variable.Symbol);
+        return Exponent.CompareTo(variable.Exponent);
     }
 
     public static Variable Parse(string str) {
