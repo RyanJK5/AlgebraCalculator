@@ -56,7 +56,7 @@ class Term : IComparable<Term> {
         if (str.Length == 0) {
             throw new ArgumentException("str must have a length of at least 1");
         }
-        if (str.Any(c => !AdditiveSymbol(c) && (!char.IsLetterOrDigit(c) || char.IsUpper(c)))) {
+        if (str.Any(c => c != '^' && !AdditiveSymbol(c) && (!char.IsLetterOrDigit(c) || char.IsUpper(c)))) {
             throw new ArgumentException("str must only contain lowercase letters and numbers");
         }
     
@@ -98,7 +98,10 @@ class Term : IComparable<Term> {
     }
 
     public static bool IsTerm(string str) =>
-        str.Length > 0 && str.All(c => char.IsNumber(c) || char.IsLetter(c) || (str.IndexOf(c) == 0 && AdditiveSymbol(c) && str.Length > 1));
+        str.Length > 0 && str.All(c => char.IsNumber(c) || 
+                                       char.IsLetter(c) || 
+                                       c == '^' || 
+                                       (str.IndexOf(c) == 0 && AdditiveSymbol(c) && str.Length > 1));
 
     public static bool AdditiveSymbol(char c) => c == '+' || c == '-';
 

@@ -1,2 +1,2 @@
 var calc = new AlgebraCalculator.AlgebraCalculator();
-calc.Start();
+AlgebraCalculator.AlgebraCalculator.Start();

@@ -9,6 +9,7 @@ public class AlgebraCalculator {
         '*',
         '(',
         ')',
+        '^'
     };
 
     private const string OpenDelimeter = "(";
@@ -86,8 +87,6 @@ public class AlgebraCalculator {
     }
 
     public static List<string> Simplify(List<string> tokens) {
-        // working on (a+b(3-ab+a2)-(2(a-1)(2+3)))
-        
         while (tokens.Contains(OpenDelimeter)) {
             int deepestIndex = FindDeepestPolynomialIndex(tokens);
 
@@ -208,12 +207,12 @@ public class AlgebraCalculator {
         return openCount == closeCount;
     }
 
-    public void Start() {
+    public static void Start() {
         Console.Write("Enter expression: ");
         string? input = Console.ReadLine();
         while (true) {
             if (input != null && ValidExpression(input)) {
-                RemoveWhiteSpaces(input);
+                input = RemoveWhiteSpaces(input);
                 Parse(input);
                 break;
             }
