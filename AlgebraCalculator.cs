@@ -62,10 +62,11 @@ public class AlgebraCalculator {
                     tokens.Insert(i, "*");
                 }
             }
-            if (tokens[i] == CloseDelimeter) {
-                if (i < tokens.Count - 1 && Term.IsTerm(tokens[i + 1])) {
-                    tokens.Insert(i + 1, "*");
-                }
+            if (tokens[i] == CloseDelimeter && i < tokens.Count - 1 && Term.IsTerm(tokens[i + 1])) {
+                tokens.Insert(i + 1, "*");
+            }
+            if (i < tokens.Count - 1 && Term.IsTerm(tokens[i]) && Term.IsTerm(tokens[i + 1])) {
+                tokens.Insert(i + 1, "*");
             }
         }
     }

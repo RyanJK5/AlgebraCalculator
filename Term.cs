@@ -97,11 +97,22 @@ class Term : IComparable<Term> {
         return new(coefficient, vars.ToArray());
     }
 
-    public static bool IsTerm(string str) =>
-        str.Length > 0 && str.All(c => char.IsNumber(c) || 
-                                       char.IsLetter(c) || 
-                                       c == '^' || 
-                                       (str.IndexOf(c) == 0 && AdditiveSymbol(c) && str.Length > 1));
+    public static bool IsTerm(string str) {
+        if (str.Length == 0) {
+            return false;
+        }
+        for (var i = 0; i < str.Length; i++) {
+            char c = str[i];
+            if  (char.IsLetter(c) || 
+                (char.IsDigit(c) && i == 0) || 
+                (char.IsDigit(c) && (char.IsDigit(str[i - 1]) || str[i - 1] == '^')) ||
+                (i == 0 && AdditiveSymbol(c) && str.Length > 1)) {
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
 
     public static bool AdditiveSymbol(char c) => c == '+' || c == '-';
 

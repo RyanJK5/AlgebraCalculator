@@ -39,7 +39,7 @@ readonly struct Variable : IComparable<Variable> {
             throw new ArgumentException("First character of str must be a lowercase letter");
         }
         int letterIndex = str.First(c => char.IsLetter(c));
-        if (letterIndex >= 0 && str.Any(c => char.IsNumber(c)) && !str.Contains('^')) {
+        if (letterIndex >= 0 && str.Any(c => char.IsDigit(c)) && !str.Contains('^')) {
             throw new ArgumentException("exponents must be shown with '^'");
         }
         return new(str[0], str.Length > 1 ? int.Parse(str[(str.IndexOf('^') + 1)..]) : 1);
