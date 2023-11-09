@@ -106,6 +106,7 @@ class Term : IComparable<Term> {
             if  (char.IsLetter(c) || 
                 (char.IsDigit(c) && i == 0) || 
                 (char.IsDigit(c) && (char.IsDigit(str[i - 1]) || str[i - 1] == '^')) ||
+                (c == '^' && char.IsLetter(str[i - 1]) && i + 1 < str.Length && char.IsDigit(str[i + 1])) ||
                 (i == 0 && AdditiveSymbol(c) && str.Length > 1)) {
                 continue;
             }

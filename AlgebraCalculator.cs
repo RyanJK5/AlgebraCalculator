@@ -1,4 +1,6 @@
-﻿namespace AlgebraCalculator;
+﻿using System.Runtime.InteropServices;
+
+namespace AlgebraCalculator;
 
 public class AlgebraCalculator {
 
@@ -43,6 +45,9 @@ public class AlgebraCalculator {
                 continue;
             }
             else if (Term.IsTerm(str[tokenStartIndex..i])) {
+                if (str[i] == '^') {
+                    continue;
+                }
                 result.Add(str[tokenStartIndex..i]);
             }
             result.Add(str[i].ToString());
@@ -105,10 +110,22 @@ public class AlgebraCalculator {
 
         int endIndex = tokens.Count - 1;
         ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"*"}, 
-            new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
+                          new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
         ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"+", "-"}, 
-            new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a + b, (a, b) => a - b}), Polynomial.Parse);
+                          new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a + b, (a, b) => a - b}), Polynomial.Parse);
 
+        return tokens;
+    }
+
+    public static List<string> Factor(List<string> tokens) {
+        GreatestCommonFactor(tokens);
+        return tokens;
+    }
+
+    private static List<string> GreatestCommonFactor(List<string> tokens) {
+        foreach (var token in tokens) {
+            Console.WriteLine(token);
+        }
         return tokens;
     }
 
@@ -161,16 +178,14 @@ public class AlgebraCalculator {
         return result;
     }
 
-    private static void Parse(string str) {
+    private static List<string> Parse(string str) {
         List<string> tokens = CreateTokens(str);
         if (!ValidExpresion(tokens)) {
             Console.WriteLine("SYNTAX ERROR");
-            return;
+            return new List<string>();
         }
         Simplify(tokens);
-        foreach (string token in tokens) {
-            Console.Write(token);
-        }
+        return tokens;
     }
 
     private static bool ValidExpresion(List<string> tokens) {
@@ -214,7 +229,11 @@ public class AlgebraCalculator {
         while (true) {
             if (input != null && ValidExpression(input)) {
                 input = RemoveWhiteSpaces(input);
-                Parse(input);
+                List<string> tokens = Parse(input);
+                tokens = Factor(CreateTokens(tokens[0]));
+                foreach (string token in tokens) {
+                   Console.Write(token);
+                }
                 break;
             }
             Console.WriteLine("Invalid input");
