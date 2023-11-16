@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace AlgebraCalculator;
+﻿namespace AlgebraCalculator;
 
 public class AlgebraCalculator {
 
@@ -118,15 +116,66 @@ public class AlgebraCalculator {
     }
 
     public static List<string> Factor(List<string> tokens) {
-        GreatestCommonFactor(tokens);
+        GreatestCommonFactor(ref tokens);
         return tokens;
     }
 
-    private static List<string> GreatestCommonFactor(List<string> tokens) {
-        foreach (var token in tokens) {
-            Console.WriteLine(token);
+    private static void GreatestCommonFactor(ref List<string> tokens) {
+        int lowestCoefficient = int.MaxValue;
+        for (var i = 0; i < tokens.Count; i++) {
+            string str = tokens[i];
+            if (Term.IsTerm(str))  { 
+                int newCoefficient = Term.Parse(str).Coefficient;
+                if (newCoefficient < lowestCoefficient) {
+                    lowestCoefficient = newCoefficient;
+                }
+            }
         }
-        return tokens;
+
+        int gcf = 1;
+        for (var i = 1; i <= lowestCoefficient; i++) {
+            if (tokens.FindAll(str => Term.IsTerm(str)).All(str => Term.Parse(str).Coefficient % i == 0)) {
+                gcf = i;
+            }
+        }
+        if (gcf == 1) {
+            return;
+        }
+
+        for (var i = 0; i < tokens.Count; i++) {
+            string str = tokens[i];
+            if (Term.IsTerm(str)) {
+                Term oldTerm = Term.Parse(str);
+                tokens[i] = new Term(oldTerm.Coefficient / gcf, oldTerm.Vars).ToString();
+            }
+        }
+        tokens.Insert(0, OpenDelimeter);
+        tokens.Insert(0, "*");
+        tokens.Insert(0, gcf.ToString());
+        tokens.Add(CloseDelimeter);
+    }
+
+    private static void FactorDOTS(ref List<string> tokens) {
+        if (tokens.Count != 3 || !Term.IsTerm(tokens[0]) || !Term.IsTerm(tokens[2]) || tokens[1] != "-") {
+            return;
+        }
+        
+        Term term1 = Term.Parse(tokens[0]);
+        Term term2 = Term.Parse(tokens[2]);
+        
+        double sqrtCoeff1 = Math.Sqrt(term1.Coefficient);
+        double sqrtCoeff2 = Math.Sqrt(term2.Coefficient);
+        if (sqrtCoeff1.ToString()[^1] != '0' || sqrtCoeff2.ToString()[^1] != '0' || term1.Vars.Any(v => v.Exponent % 2 == 1) || term2.Vars.Any(v => v.Exponent % 2 == 1)) {
+            return;
+        }
+
+        var newTerm1List = new List<Variable>();
+        foreach (var v in term1.Vars) {
+            newTerm1List.Add(v.Symbol, v.Exponent / 2);
+        }
+
+        tokens.Insert(0, OpenDelimeter);
+        tokens.Add(CloseDelimeter);
     }
 
     private static int FindDeepestPolynomialIndex(List<string> tokens) {
@@ -231,6 +280,11 @@ public class AlgebraCalculator {
                 input = RemoveWhiteSpaces(input);
                 List<string> tokens = Parse(input);
                 tokens = Factor(CreateTokens(tokens[0]));
+                foreach (string token in tokens) {
+                   Console.Write(token);
+                }
+                Console.WriteLine();
+                tokens = Simplify(tokens);
                 foreach (string token in tokens) {
                    Console.Write(token);
                 }
