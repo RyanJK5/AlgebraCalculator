@@ -15,7 +15,7 @@ public class AlgebraCalculator {
     private const string OpenDelimeter = "(";
     private const string CloseDelimeter = ")";
 
-    private static bool ValidExpression(string str) =>
+    public static bool ValidString(string str) =>
         str != null && str.Length != 0 && str.ToCharArray().All(ValidChar)
     ;
 
@@ -117,6 +117,8 @@ public class AlgebraCalculator {
 
     public static List<string> Factor(List<string> tokens) {
         GreatestCommonFactor(ref tokens);
+        FactorDOTS(ref tokens);
+        FactorDOTC(ref tokens);
         return tokens;
     }
 
@@ -160,21 +162,42 @@ public class AlgebraCalculator {
             return;
         }
         
-        Term term1 = Term.Parse(tokens[0]);
-        Term term2 = Term.Parse(tokens[2]);
+        Term? term1 = Term.Root(Term.Parse(tokens[0]), 2);
+        Term? term2 = Term.Root(Term.Parse(tokens[2]), 2);
         
-        double sqrtCoeff1 = Math.Sqrt(term1.Coefficient);
-        double sqrtCoeff2 = Math.Sqrt(term2.Coefficient);
-        if (sqrtCoeff1.ToString()[^1] != '0' || sqrtCoeff2.ToString()[^1] != '0' || term1.Vars.Any(v => v.Exponent % 2 == 1) || term2.Vars.Any(v => v.Exponent % 2 == 1)) {
+        if (term1 is null || term2 is null) {
             return;
         }
 
-        var newTerm1List = new List<Variable>();
-        foreach (var v in term1.Vars) {
-            newTerm1List.Add(v.Symbol, v.Exponent / 2);
+        tokens[0] = term1.ToString();
+        tokens[2] = term2.ToString();
+        tokens.Insert(0, OpenDelimeter);
+        tokens.Add(CloseDelimeter);
+        tokens.AddRange(tokens);
+        tokens[^3] = "+";
+    }
+
+    private static void FactorDOTC(ref List<string> tokens) {
+        if (tokens.Count != 3 || !Term.IsTerm(tokens[0]) || !Term.IsTerm(tokens[2]) || !Term.AdditiveSymbol(tokens[1][0])) {
+            return;
         }
 
+        Term? term1 = Term.Root(Term.Parse(tokens[0]), 3);
+        Term? term2 = Term.Root(Term.Parse(tokens[2]), 3);
+        
+        if (term1 is null || term2 is null) {
+            return;
+        }
+        tokens[0] = term1.ToString();
+        tokens[2] = term2.ToString();
         tokens.Insert(0, OpenDelimeter);
+        tokens.Add(CloseDelimeter);
+        tokens.Add(OpenDelimeter);
+        tokens.Add(Term.Pow(term1, 2).ToString());
+        tokens.Add(Term.OppositeAdditiveSymbol(tokens[1][0]).ToString());
+        tokens.Add((term1 * term2).ToString());
+        tokens.Add("+");
+        tokens.Add(Term.Pow(term2, 2).ToString());
         tokens.Add(CloseDelimeter);
     }
 
@@ -237,7 +260,7 @@ public class AlgebraCalculator {
         return tokens;
     }
 
-    private static bool ValidExpresion(List<string> tokens) {
+    public static bool ValidExpresion(List<string> tokens) {
         if (tokens == null) {
             throw new NullReferenceException();
         }
@@ -272,26 +295,24 @@ public class AlgebraCalculator {
         return openCount == closeCount;
     }
 
-    public static void Start() {
+    public static void Main() {
         Console.Write("Enter expression: ");
         string? input = Console.ReadLine();
         while (true) {
-            if (input != null && ValidExpression(input)) {
-                input = RemoveWhiteSpaces(input);
-                List<string> tokens = Parse(input);
-                tokens = Factor(CreateTokens(tokens[0]));
-                foreach (string token in tokens) {
-                   Console.Write(token);
-                }
-                Console.WriteLine();
-                tokens = Simplify(tokens);
-                foreach (string token in tokens) {
-                   Console.Write(token);
-                }
-                break;
+            if (input != null && ValidString(input)) {
+                string result = SimplifyAndFactor(input);
+                Console.WriteLine(result);
+                continue;
             }
             Console.WriteLine("Invalid input");
             input = Console.ReadLine();
         }
+    }
+
+    public static string SimplifyAndFactor(string input) {
+        input = RemoveWhiteSpaces(input);
+        List<string> tokens = Parse(input);
+        tokens = Factor(CreateTokens(tokens[0]));
+        return string.Concat(tokens);
     }
 }

@@ -117,6 +117,29 @@ class Term : IComparable<Term> {
 
     public static bool AdditiveSymbol(char c) => c == '+' || c == '-';
 
+    public static char OppositeAdditiveSymbol(char c) => c == '+' ? '-' : '+';
+
+    public static bool PerfectPower(Term t, int exponent) => Math.Pow(t.Coefficient, Math.ReciprocalEstimate(exponent)) % 1 == 0 || t.Vars.Any(v => v.Exponent % exponent != 0);
+
+    public static Term? Root(Term t, int rootPower) {
+        if (!PerfectPower(t, rootPower)) {
+            return null;
+        }
+        var newVarList = new List<Variable>();
+        foreach (Variable v in t.Vars) {
+            newVarList.Add(new Variable(v.Symbol, v.Exponent / rootPower));
+        }
+        return new Term((int) Math.Pow(t.Coefficient, Math.ReciprocalEstimate(rootPower)), newVarList.ToArray());
+    }
+
+    public static Term Pow(Term t, int power) {
+        var newVarList = new List<Variable>();
+        foreach (Variable v in t.Vars) {
+            newVarList.Add(new Variable(v.Symbol, v.Exponent * power));
+        }
+        return new Term((int) Math.Pow(t.Coefficient, power), newVarList.ToArray());
+    }
+
     public static Term operator *(Term t1, Term t2) {
         int newCoefficient = t1.Coefficient * t2.Coefficient;
         var newVariables = new Variable[t1._vars.Count + t2._vars.Count];
