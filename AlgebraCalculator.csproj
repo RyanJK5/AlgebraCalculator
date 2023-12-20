@@ -2,7 +2,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+<<<<<<< HEAD
     <GenerateProgramFile>false</GenerateProgramFile>
+=======
+    <GenerateProgram>false</GenerateProgram>
+>>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>

@@ -43,7 +43,11 @@ public class AlgebraCalculator {
                 continue;
             }
             else if (Term.IsTerm(str[tokenStartIndex..i])) {
+<<<<<<< HEAD
                 if (str[i] == '^' && Term.Parse(str[tokenStartIndex..i]).Vars.Length > 0) {
+=======
+                if (str[i] == '^') {
+>>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
                     continue;
                 }
                 result.Add(str[tokenStartIndex..i]);
@@ -104,10 +108,63 @@ public class AlgebraCalculator {
         }
 
         int endIndex = tokens.Count - 1;
+<<<<<<< HEAD
         ExecutePEMDAS(tokens, 0, ref endIndex);
         return tokens;
     }
 
+=======
+        ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"*"}, 
+                          new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
+        ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"+", "-"}, 
+                          new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a + b, (a, b) => a - b}), Polynomial.Parse);
+
+        return tokens;
+    }
+
+    public static List<string> Factor(List<string> tokens) {
+        GreatestCommonFactor(ref tokens);
+        FactorDOTS(ref tokens);
+        FactorDOTC(ref tokens);
+        return tokens;
+    }
+
+    private static void GreatestCommonFactor(ref List<string> tokens) {
+        int lowestCoefficient = int.MaxValue;
+        for (var i = 0; i < tokens.Count; i++) {
+            string str = tokens[i];
+            if (Term.IsTerm(str))  { 
+                int newCoefficient = Term.Parse(str).Coefficient;
+                if (newCoefficient < lowestCoefficient) {
+                    lowestCoefficient = newCoefficient;
+                }
+            }
+        }
+
+        int gcf = 1;
+        for (var i = 1; i <= lowestCoefficient; i++) {
+            if (tokens.FindAll(str => Term.IsTerm(str)).All(str => Term.Parse(str).Coefficient % i == 0)) {
+                gcf = i;
+            }
+        }
+        if (gcf == 1) {
+            return;
+        }
+
+        for (var i = 0; i < tokens.Count; i++) {
+            string str = tokens[i];
+            if (Term.IsTerm(str)) {
+                Term oldTerm = Term.Parse(str);
+                tokens[i] = new Term(oldTerm.Coefficient / gcf, oldTerm.Vars).ToString();
+            }
+        }
+        tokens.Insert(0, OpenDelimeter);
+        tokens.Insert(0, "*");
+        tokens.Insert(0, gcf.ToString());
+        tokens.Add(CloseDelimeter);
+    }
+
+>>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
     private static void FactorDOTS(ref List<string> tokens) {
         if (tokens.Count != 3 || !Term.IsTerm(tokens[0]) || !Term.IsTerm(tokens[2]) || tokens[1] != "-") {
             return;
@@ -145,7 +202,11 @@ public class AlgebraCalculator {
         tokens.Add(CloseDelimeter);
         tokens.Add(OpenDelimeter);
         tokens.Add(Term.Pow(term1, 2).ToString());
+<<<<<<< HEAD
         tokens.Add(Term.OppositeAdditiveSymbol(tokens[2][0]).ToString());
+=======
+        tokens.Add(Term.OppositeAdditiveSymbol(tokens[1][0]).ToString());
+>>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
         tokens.Add((term1 * term2).ToString());
         tokens.Add("+");
         tokens.Add(Term.Pow(term2, 2).ToString());
@@ -268,7 +329,11 @@ public class AlgebraCalculator {
             if (input != null && ValidString(input)) {
                 string result = SimplifyAndFactor(input);
                 Console.WriteLine(result);
+<<<<<<< HEAD
                 return;
+=======
+                continue;
+>>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
             }
             Console.WriteLine("Invalid input");
             input = Console.ReadLine();
@@ -276,6 +341,7 @@ public class AlgebraCalculator {
     }
 
     public static string SimplifyAndFactor(string input) {
+<<<<<<< HEAD
         List<string> tokens = Simplify(input);
         FactoredPolynomial factored = FactoredPolynomial.Factor((FactoredPolynomial)new(Polynomial.Parse(tokens[0])));
         return factored.ToString();
@@ -285,5 +351,11 @@ public class AlgebraCalculator {
         input = RemoveWhiteSpaces(input);
         List<string> tokens = Parse(input);
         return tokens;
+=======
+        input = RemoveWhiteSpaces(input);
+        List<string> tokens = Parse(input);
+        tokens = Factor(CreateTokens(tokens[0]));
+        return string.Concat(tokens);
+>>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
     }
 }

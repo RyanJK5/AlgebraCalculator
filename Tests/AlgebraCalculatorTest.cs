@@ -1,11 +1,15 @@
 namespace AlgebraCalculator.Tests;
 
+<<<<<<< HEAD
 using System.Runtime.InteropServices;
+=======
+>>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
 using Xunit;
 
 public static class AlgebraCalculatorTest {
 
     [Theory]
+<<<<<<< HEAD
     [InlineData("2(x+4(x^2-3)(2x+1))-4", "16x^3+8x^2-46x-28")]
     [InlineData("0","0")]
     [InlineData("4(9+3-2*4-3)*4-9", "7")]
@@ -54,5 +58,11 @@ public static class AlgebraCalculatorTest {
         // x^2y = -2z / 8 = -z/4
         // (x^2y-3z)(4x^2y+z) 
         Assert.True(AlgebraCalculator.ValidString(input) && AlgebraCalculator.SimplifyAndFactor(input).Equals(expected));
+=======
+    [InlineData("2(x+4(x^2-3)(2x+1))-4", "")]
+    public static void SimplifyTest(string input, string expected) {
+        Assert.True(AlgebraCalculator.ValidString(input) && AlgebraCalculator.SimplifyAndFactor(input) == expected);
+        
+>>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
     }
 }
