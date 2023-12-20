@@ -106,13 +106,8 @@ class Term : IComparable<Term> {
             char c = str[i];
             if  (char.IsLetter(c) || 
                 (char.IsDigit(c) && i == 0) || 
-<<<<<<< HEAD
                 (i - 1 >= 0 && char.IsDigit(c) && (char.IsDigit(str[i - 1]) || str[i - 1] == '^')) ||
                 (i - 1 >= 0 && c == '^' && char.IsLetter(str[i - 1]) && i + 1 < str.Length && char.IsDigit(str[i + 1])) ||
-=======
-                (char.IsDigit(c) && (char.IsDigit(str[i - 1]) || str[i - 1] == '^')) ||
-                (c == '^' && char.IsLetter(str[i - 1]) && i + 1 < str.Length && char.IsDigit(str[i + 1])) ||
->>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
                 (i == 0 && AdditiveSymbol(c) && str.Length > 1)) {
                 continue;
             }
@@ -125,30 +120,20 @@ class Term : IComparable<Term> {
 
     public static char OppositeAdditiveSymbol(char c) => c == '+' ? '-' : '+';
 
-<<<<<<< HEAD
-    public static bool PerfectPower(Term t, int exponent) => Math.Pow(Math.Abs(t.Coefficient), Math.ReciprocalEstimate(exponent)) % 1 == 0 && t.Vars.All(v => v.Exponent % exponent == 0);
+    public static bool PerfectPower(Term t, int exponent, bool abs = true) => Math.Pow(abs ? Math.Abs(t.Coefficient) : t.Coefficient, Math.ReciprocalEstimate(exponent)) % 1 == 0 && t.Vars.All(v => v.Exponent % exponent == 0);
 
-    public static Term? Root(Term t, int rootPower) {
+    public static Term? Root(Term t, int rootPower, bool abs = true) {
         if (t.Equals(new Term(0))) {
             return t;
         }
-=======
-    public static bool PerfectPower(Term t, int exponent) => Math.Pow(t.Coefficient, Math.ReciprocalEstimate(exponent)) % 1 == 0 || t.Vars.Any(v => v.Exponent % exponent != 0);
-
-    public static Term? Root(Term t, int rootPower) {
->>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
-        if (!PerfectPower(t, rootPower)) {
+        if (!PerfectPower(t, rootPower, abs)) {
             return null;
         }
         var newVarList = new List<Variable>();
         foreach (Variable v in t.Vars) {
             newVarList.Add(new Variable(v.Symbol, v.Exponent / rootPower));
         }
-<<<<<<< HEAD
         return new Term((int) Math.Pow(Math.Abs(t.Coefficient), Math.ReciprocalEstimate(rootPower)) * (t.Coefficient / Math.Abs(t.Coefficient)), newVarList.ToArray());
-=======
-        return new Term((int) Math.Pow(t.Coefficient, Math.ReciprocalEstimate(rootPower)), newVarList.ToArray());
->>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
     }
 
     public static Term Pow(Term t, int power) {
@@ -172,6 +157,10 @@ class Term : IComparable<Term> {
     }
 
     public static Term? operator /(Term t1, Term t2) {
+        if (t1.Equals(new Term(0))) {
+            return t1;
+        }
+
         if (t1.Coefficient % t2.Coefficient != 0) {
             return null;
         }
@@ -181,7 +170,6 @@ class Term : IComparable<Term> {
             return new(newCoefficient, t1.Vars);
         }
 
-        // -8xy / x = -8y
         var newVars = new List<Variable>();
         for (var i = 0; i < t2.Vars.Length; i++) {
             Variable denominator = t2.Vars[i];

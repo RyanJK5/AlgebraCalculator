@@ -1,15 +1,11 @@
 namespace AlgebraCalculator.Tests;
 
-<<<<<<< HEAD
 using System.Runtime.InteropServices;
-=======
->>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
 using Xunit;
 
 public static class AlgebraCalculatorTest {
 
     [Theory]
-<<<<<<< HEAD
     [InlineData("2(x+4(x^2-3)(2x+1))-4", "16x^3+8x^2-46x-28")]
     [InlineData("0","0")]
     [InlineData("4(9+3-2*4-3)*4-9", "7")]
@@ -38,6 +34,7 @@ public static class AlgebraCalculatorTest {
     [InlineData("x^2-4","(x-2)(x+2)")]
     [InlineData("4x^2-9","(2x-3)(2x+3)")]
     [InlineData("16x^2y^2-9a^2b^4","(4xy-3ab^2)(3ab^2+4xy)")]
+    [InlineData("x^2+4","x^2+4")]
 
     // Quadratics
     [InlineData("x^2+2x-3", "(x-1)(x+3)")]
@@ -50,19 +47,11 @@ public static class AlgebraCalculatorTest {
     [InlineData("5x^2y^2-45y^4","5y^2(x-3y)(x+3y)")]
     [InlineData("6x^4-96","6(x-2)(x+2)(x^2+4)")]
 
-    hey! // try factoring DOTS with quadratics
-
     public static void FactorTest(string input, string expected) {
         //  x^2y = (11z +/- sqrt(121z^2-4(4)(-3z^2))) / 2(4)
         // x^2y = 24z / 8 = 3z
         // x^2y = -2z / 8 = -z/4
         // (x^2y-3z)(4x^2y+z) 
         Assert.True(AlgebraCalculator.ValidString(input) && AlgebraCalculator.SimplifyAndFactor(input).Equals(expected));
-=======
-    [InlineData("2(x+4(x^2-3)(2x+1))-4", "")]
-    public static void SimplifyTest(string input, string expected) {
-        Assert.True(AlgebraCalculator.ValidString(input) && AlgebraCalculator.SimplifyAndFactor(input) == expected);
-        
->>>>>>> 079a0200bf33412ec98b9e9173964a419e024458
     }
 }

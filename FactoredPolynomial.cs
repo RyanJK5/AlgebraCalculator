@@ -1,8 +1,3 @@
-using System.Data.Common;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.VisualBasic;
-using Microsoft.VisualStudio.TestPlatform.Common.DataCollection;
-
 namespace AlgebraCalculator;
 
 class FactoredPolynomial {
@@ -71,12 +66,9 @@ class FactoredPolynomial {
     }
 
     public static FactoredPolynomial FactorOnce(Polynomial poly) {
-        FactoredPolynomial result = DifferenceOfTwoSquares(poly);
+        FactoredPolynomial result = GreatestCommonFactor(poly);
         if (result.Factors[0].Equals(poly)) {
-            result = FactorQuadratic(poly);
-            if (result.Factors[0].Equals(poly)) {
-                return GreatestCommonFactor(poly);
-            }
+            return FactorQuadratic(poly);
         }
         return result;
     }
@@ -84,15 +76,29 @@ class FactoredPolynomial {
     public static FactoredPolynomial FactorQuadratic(Polynomial poly) {
         var nullResult = new FactoredPolynomial(poly);
         
-        if (poly.Terms.Count != 3 || poly.HighestExponent() % 2 != 0) {
+        if ((poly.TermCount != 3 && poly.TermCount != 2) || poly.HighestExponent() % 2 != 0) {
             return nullResult;
         }
         
-        Term subjectVar = GreatestCommonFactor(new Polynomial(poly.Terms[0], poly.Terms[1])).LeadingTerm;
+        Term aFullTerm = poly.Terms[0];
+        Term bFullTerm;
+        Term? subjectVar;
+        if (poly.TermCount == 3) {
+            bFullTerm = poly.Terms[1];
+            subjectVar = GreatestCommonFactor(new Polynomial(aFullTerm, bFullTerm)).LeadingTerm;
+        }
+        else {
+            bFullTerm = new Term(0);
+            subjectVar = Term.Root(aFullTerm, 2);
+            if (subjectVar is null) {
+                return nullResult;
+            }
+        }
+        Term c = poly.Terms[^1];
 
-        Term? a = poly.Terms[0] / Term.Pow(subjectVar, 2);
-        Term? b = poly.Terms[1] / subjectVar;
-        Term c = poly.Terms[2];
+        Term? a = aFullTerm / Term.Pow(subjectVar, 2);
+        Term? b = bFullTerm / subjectVar;
+
         if (a is null || b is null) {
             return nullResult;
         }
@@ -101,7 +107,7 @@ class FactoredPolynomial {
         if (radicand is null) {
             return nullResult;
         }
-        Term? discriminant = Term.Root(radicand, 2);
+        Term? discriminant = Term.Root(radicand, 2, false);
         if (discriminant is null) {
             return nullResult;
         }
@@ -114,28 +120,10 @@ class FactoredPolynomial {
                 return nullResult;
             }
             
-            Polynomial factor = GreatestCommonFactor(new Polynomial(subjectVar * denominator, -sol)).Factors[0];;
+            Polynomial factor = GreatestCommonFactor(new Polynomial(subjectVar * denominator, -sol)).Factors[0];
             result.AddFactor(factor);
         }
         return result;
-    }
-
-    public static FactoredPolynomial DifferenceOfTwoSquares(Polynomial poly) {
-        if (poly.TermCount == 0) {
-            throw new ArgumentException("Polynomial must have at least one term");
-        }
-        if (poly.TermCount != 2 || ((poly.Terms[0].Coefficient < 0) == (poly.Terms[1].Coefficient < 0))) {
-            return new FactoredPolynomial(poly);
-        }
-        Term? rootTerm1 = Term.Root(poly.Terms[0], 2);
-        Term? rootTerm2 = Term.Root(poly.Terms[1], 2);
-        if (rootTerm1 is null || rootTerm2 is null) {
-            return new FactoredPolynomial(poly);
-        }
-        Term negativeTerm = rootTerm1.Coefficient < 0 ? rootTerm1 : rootTerm2;
-        Term positiveTerm = negativeTerm == rootTerm1 ? rootTerm2 : rootTerm1;
-
-        return new FactoredPolynomial(new Polynomial(positiveTerm, negativeTerm), new Polynomial(positiveTerm, -negativeTerm));
     }
 
     public static FactoredPolynomial GreatestCommonFactor(Polynomial poly) {
