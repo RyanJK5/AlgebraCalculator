@@ -2,7 +2,7 @@ namespace AlgebraCalculator;
 
 class Polynomial {
 
-    private List<Term> Terms;
+    public List<Term> Terms { get; private set; }
 
     public int TermCount { get => Terms.Count; }
 
@@ -18,6 +18,10 @@ class Polynomial {
         Simplify();
     }
 
+    public Term GetTerm(int index) {
+        return Terms[index];
+    }
+
     public override string ToString() {
         string result = "";
         for (var i = 0; i < Terms.Count; i++) {
@@ -29,7 +33,7 @@ class Polynomial {
         return result;
     }
 
-    private void  Simplify() {
+    private void Simplify() {
         var newList = new List<Term>();
         foreach (Term term in Terms) {
             Term? matchingTerm = newList.Find(t => Term.SameVariableSet(t, term));
@@ -46,8 +50,28 @@ class Polynomial {
             }
             newList.Add(term);
         }
-        newList.Sort();
         Terms = newList;
+        Sort();
+    }
+
+    private void Sort() {
+        Terms.Sort();
+        if (Terms.Count == 2 && ((Terms[0].Coefficient < 0) != (Terms[1].Coefficient < 0)) && Terms[1].Coefficient > Terms[0].Coefficient) {
+            (Terms[1], Terms[0]) = (Terms[0], Terms[1]);
+        }
+    }
+
+    public int HighestExponent() {
+        int result = 0;
+        for (var i = 0; i < Terms.Count; i++) {
+            var termVars = Terms[i].Vars;
+            for (var j = 0; j < termVars.Length; j++) {
+                if (termVars[j].Exponent > result) {
+                    result = termVars[j].Exponent;
+                }
+            }
+        }
+        return result;
     }
 
     public static Polynomial Parse(string str) {
@@ -61,6 +85,14 @@ class Polynomial {
         }
         termList.Add(Term.Parse(str));
         return new Polynomial(termList);
+    }
+
+    public static Polynomial Pow(Polynomial p, int exponent) {
+        Polynomial result = p;
+        for (var i = 1; i < exponent; i++) {
+            result *= p;
+        }
+        return result;
     }
 
     public static Polynomial operator *(Polynomial a, Polynomial b) {

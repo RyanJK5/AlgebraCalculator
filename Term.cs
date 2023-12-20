@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
 namespace AlgebraCalculator;
@@ -20,7 +21,7 @@ class Term : IComparable<Term> {
         
         _vars.AddRange(variables);
         Simplify();
-        _vars.Sort((a, b) => -a.CompareTo(b));
+        _vars.Sort(CompareVars);
     }
 
     public Term(params Variable[] variables) : this(1, variables) { }
@@ -56,7 +57,7 @@ class Term : IComparable<Term> {
         if (str.Length == 0) {
             throw new ArgumentException("str must have a length of at least 1");
         }
-        if (str.Any(c => !AdditiveSymbol(c) && (!char.IsLetterOrDigit(c) || char.IsUpper(c)))) {
+        if (str.Any(c => c != '^' && !AdditiveSymbol(c) && (!char.IsLetterOrDigit(c) || char.IsUpper(c)))) {
             throw new ArgumentException("str must only contain lowercase letters and numbers");
         }
     
@@ -97,10 +98,51 @@ class Term : IComparable<Term> {
         return new(coefficient, vars.ToArray());
     }
 
-    public static bool IsTerm(string str) =>
-        str.Length > 0 && str.All(c => char.IsNumber(c) || char.IsLetter(c) || (str.IndexOf(c) == 0 && AdditiveSymbol(c) && str.Length > 1));
+    public static bool IsTerm(string str) {
+        if (str.Length == 0) {
+            return false;
+        }
+        for (var i = 0; i < str.Length; i++) {
+            char c = str[i];
+            if  (char.IsLetter(c) || 
+                (char.IsDigit(c) && i == 0) || 
+                (i - 1 >= 0 && char.IsDigit(c) && (char.IsDigit(str[i - 1]) || str[i - 1] == '^')) ||
+                (i - 1 >= 0 && c == '^' && char.IsLetter(str[i - 1]) && i + 1 < str.Length && char.IsDigit(str[i + 1])) ||
+                (i == 0 && AdditiveSymbol(c) && str.Length > 1)) {
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
 
     public static bool AdditiveSymbol(char c) => c == '+' || c == '-';
+
+    public static char OppositeAdditiveSymbol(char c) => c == '+' ? '-' : '+';
+
+    public static bool PerfectPower(Term t, int exponent) => Math.Pow(Math.Abs(t.Coefficient), Math.ReciprocalEstimate(exponent)) % 1 == 0 && t.Vars.All(v => v.Exponent % exponent == 0);
+
+    public static Term? Root(Term t, int rootPower) {
+        if (t.Equals(new Term(0))) {
+            return t;
+        }
+        if (!PerfectPower(t, rootPower)) {
+            return null;
+        }
+        var newVarList = new List<Variable>();
+        foreach (Variable v in t.Vars) {
+            newVarList.Add(new Variable(v.Symbol, v.Exponent / rootPower));
+        }
+        return new Term((int) Math.Pow(Math.Abs(t.Coefficient), Math.ReciprocalEstimate(rootPower)) * (t.Coefficient / Math.Abs(t.Coefficient)), newVarList.ToArray());
+    }
+
+    public static Term Pow(Term t, int power) {
+        var newVarList = new List<Variable>();
+        foreach (Variable v in t.Vars) {
+            newVarList.Add(new Variable(v.Symbol, v.Exponent * power));
+        }
+        return new Term((int) Math.Pow(t.Coefficient, power), newVarList.ToArray());
+    }
 
     public static Term operator *(Term t1, Term t2) {
         int newCoefficient = t1.Coefficient * t2.Coefficient;
@@ -115,26 +157,60 @@ class Term : IComparable<Term> {
     }
 
     public static Term? operator /(Term t1, Term t2) {
-        if (t1.Coefficient % t2.Coefficient != 0 || t1._vars.Count != t2._vars.Count) {
+        if (t1.Coefficient % t2.Coefficient != 0) {
             return null;
         }
 
         int newCoefficient = t1.Coefficient / t2.Coefficient;
+        if (t2.Vars.Length == 0) {
+            return new(newCoefficient, t1.Vars);
+        }
+
+        // -8xy / x = -8y
         var newVars = new List<Variable>();
-        for (var i = 0; i < t1._vars.Count; i++) {
-            if (t1[i].Symbol != t2[i].Symbol) {
+        for (var i = 0; i < t2.Vars.Length; i++) {
+            Variable denominator = t2.Vars[i];
+            bool atLeastOne = false;
+            for (var j = 0; j < t1.Vars.Length; j++) {
+                var numerator = t1.Vars[j];
+                if (newVars.Any(v => v.Symbol == numerator.Symbol)) {
+                    continue;
+                }
+                if (numerator.Symbol == denominator.Symbol) {
+                    int newExponent = numerator.Exponent - denominator.Exponent;
+                    if (newExponent < 0) {
+                        return null;
+                    }
+                    atLeastOne = true;
+                    newVars.Add(new(t1[j].Symbol, newExponent));
+                    continue;
+                }
+            }
+            if (!atLeastOne) {
                 return null;
             }
-
-            int newExponent = t1[i].Exponent - t2[i].Exponent;
-            if (newExponent != 0) {
-                newVars.Add(new(t1[i].Symbol, newExponent));
-            } 
         }
+        
+        for (var i = 0; i < t1.Vars.Length; i++) {
+            if (newVars.All(v => v.Symbol != t1.Vars[i].Symbol)) {
+                newVars.Add(t1.Vars[i]);
+            }
+        }
+        newVars.RemoveAll(v => v.Exponent == 0);
         return new(newCoefficient, newVars.ToArray());
     }
 
+    public static bool Divisible(Term t1, Term t2) {
+        return t1 / t2 is not null;
+    }
+
     public static Term? operator +(Term t1, Term t2) {
+        if (t1.Coefficient == 0) {
+            return t2;
+        }
+        if (t2.Coefficient == 0) {
+            return t1;
+        }
         if (!SameVariableSet(t1, t2)) {
             return null;
         }
@@ -144,12 +220,24 @@ class Term : IComparable<Term> {
     public static Term? operator -(Term t1, Term t2) =>
         t1 + new Term(-t2.Coefficient, t2._vars.ToArray());
 
+    public static Term operator -(Term t) =>
+        new(-t.Coefficient, t.Vars.ToArray());
+
     public static bool operator ==(Term t1, Term t2) => t1.Equals(t2);
 
     public static bool operator !=(Term t1, Term t2) => !t1.Equals(t2);
 
     public Variable this[int index] {
         get => _vars[index];
+    }
+
+    public bool Contains(Variable variable) {
+        foreach (var otherVar in Vars) {
+            if (otherVar.Equals(variable)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public override string ToString() {
@@ -187,6 +275,20 @@ class Term : IComparable<Term> {
         if (_vars.Count == 0 || other._vars.Count == 0) {
             return -_vars.Count.CompareTo(other._vars.Count);
         }
-        return other[0].CompareTo(this[0]);
+        
+        for (var i = 0; i < Math.Min(Vars.Length, other.Vars.Length); i++) {
+            int comparison = CompareVars(Vars[i], other.Vars[i]);
+            if (comparison != 0) {
+                return comparison;
+            }
+        }
+        return 0;
+    }
+
+    private static int CompareVars(Variable a, Variable b) {
+        if (a.Symbol == b.Symbol) {
+            return -a.Exponent.CompareTo(b.Exponent);
+        }
+        return a.Symbol.CompareTo(b.Symbol);
     }
 }

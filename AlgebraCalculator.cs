@@ -9,12 +9,13 @@ public class AlgebraCalculator {
         '*',
         '(',
         ')',
+        '^'
     };
 
     private const string OpenDelimeter = "(";
     private const string CloseDelimeter = ")";
 
-    private static bool ValidExpression(string str) =>
+    public static bool ValidString(string str) =>
         str != null && str.Length != 0 && str.ToCharArray().All(ValidChar)
     ;
 
@@ -42,6 +43,9 @@ public class AlgebraCalculator {
                 continue;
             }
             else if (Term.IsTerm(str[tokenStartIndex..i])) {
+                if (str[i] == '^' && Term.Parse(str[tokenStartIndex..i]).Vars.Length > 0) {
+                    continue;
+                }
                 result.Add(str[tokenStartIndex..i]);
             }
             result.Add(str[i].ToString());
@@ -61,10 +65,11 @@ public class AlgebraCalculator {
                     tokens.Insert(i, "*");
                 }
             }
-            if (tokens[i] == CloseDelimeter) {
-                if (i < tokens.Count - 1 && Term.IsTerm(tokens[i + 1])) {
-                    tokens.Insert(i + 1, "*");
-                }
+            if (tokens[i] == CloseDelimeter && i < tokens.Count - 1 && Term.IsTerm(tokens[i + 1])) {
+                tokens.Insert(i + 1, "*");
+            }
+            if (i < tokens.Count - 1 && Term.IsTerm(tokens[i]) && Term.IsTerm(tokens[i + 1])) {
+                tokens.Insert(i + 1, "*");
             }
         }
     }
@@ -86,30 +91,65 @@ public class AlgebraCalculator {
     }
 
     public static List<string> Simplify(List<string> tokens) {
-        // working on (a+b(3-ab+a2)-(2(a-1)(2+3)))
-        
         while (tokens.Contains(OpenDelimeter)) {
             int deepestIndex = FindDeepestPolynomialIndex(tokens);
 
             int rangeStart = deepestIndex + 1;
             int rangeEnd = tokens.IndexOf(CloseDelimeter, rangeStart);
 
-            ExecuteOperations(tokens, rangeStart, ref rangeEnd, CreateDictionary(new string[] {"*"}, 
-                              new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
-            ExecuteOperations(tokens, rangeStart, ref rangeEnd, CreateDictionary(new string[] {"+", "-"}, 
-                              new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a + b, (a, b) => a - b}), Polynomial.Parse);
+            ExecutePEMDAS(tokens, rangeStart, ref rangeEnd);
 
             tokens[deepestIndex] = string.Concat(tokens.GetRange(rangeStart, rangeEnd - rangeStart));
             tokens.RemoveRange(rangeStart, rangeEnd - rangeStart + 1);
         }
 
         int endIndex = tokens.Count - 1;
-        ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"*"}, 
-            new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}), Polynomial.Parse);
-        ExecuteOperations(tokens, 0, ref endIndex, CreateDictionary(new string[] {"+", "-"}, 
-            new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a + b, (a, b) => a - b}), Polynomial.Parse);
-
+        ExecutePEMDAS(tokens, 0, ref endIndex);
         return tokens;
+    }
+
+    private static void FactorDOTS(ref List<string> tokens) {
+        if (tokens.Count != 3 || !Term.IsTerm(tokens[0]) || !Term.IsTerm(tokens[2]) || tokens[1] != "-") {
+            return;
+        }
+        
+        Term? term1 = Term.Root(Term.Parse(tokens[0]), 2);
+        Term? term2 = Term.Root(Term.Parse(tokens[2]), 2);
+        
+        if (term1 is null || term2 is null) {
+            return;
+        }
+
+        tokens[0] = term1.ToString();
+        tokens[2] = term2.ToString();
+        tokens.Insert(0, OpenDelimeter);
+        tokens.Add(CloseDelimeter);
+        tokens.AddRange(tokens);
+        tokens[^3] = "+";
+    }
+
+    private static void FactorDOTC(ref List<string> tokens) {
+        if (tokens.Count != 3 || !Term.IsTerm(tokens[0]) || !Term.IsTerm(tokens[2]) || !Term.AdditiveSymbol(tokens[1][0])) {
+            return;
+        }
+
+        Term? term1 = Term.Root(Term.Parse(tokens[0]), 3);
+        Term? term2 = Term.Root(Term.Parse(tokens[2]), 3);
+        
+        if (term1 is null || term2 is null) {
+            return;
+        }
+        tokens[0] = term1.ToString();
+        tokens[2] = term2.ToString();
+        tokens.Insert(0, OpenDelimeter);
+        tokens.Add(CloseDelimeter);
+        tokens.Add(OpenDelimeter);
+        tokens.Add(Term.Pow(term1, 2).ToString());
+        tokens.Add(Term.OppositeAdditiveSymbol(tokens[2][0]).ToString());
+        tokens.Add((term1 * term2).ToString());
+        tokens.Add("+");
+        tokens.Add(Term.Pow(term2, 2).ToString());
+        tokens.Add(CloseDelimeter);
     }
 
     private static int FindDeepestPolynomialIndex(List<string> tokens) {
@@ -129,12 +169,27 @@ public class AlgebraCalculator {
         return maxLayerIndex;
     }
 
-    private static void ExecuteOperations<T>(List<string> tokens, int startIndex, ref int endIndex, 
-                                             Dictionary<string, Func<T, T, T?>> symbolsToOperations, Func<string, T> parseMethod) {
+    private static void ExecutePEMDAS(List<string> tokens, int startIndex, ref int endIndex) {
+        ExecuteOperations(tokens, startIndex, ref endIndex, CreateDictionary(new string[] {"^"}, new Func<Polynomial, Polynomial, Polynomial?>[] {
+            (a, b) => {
+                if (int.TryParse(b.ToString(), out int bInt)) {
+                    return Polynomial.Pow(a, bInt);
+                }
+                return null;
+            }
+        }));
+        ExecuteOperations(tokens, startIndex, ref endIndex, CreateDictionary(new string[] {"*"}, 
+                          new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a * b}));
+        ExecuteOperations(tokens, startIndex, ref endIndex, CreateDictionary(new string[] {"+", "-"}, 
+                          new Func<Polynomial, Polynomial, Polynomial?>[] {(a, b) => a + b, (a, b) => a - b}));
+    }
+
+    private static void ExecuteOperations(List<string> tokens, int startIndex, ref int endIndex, 
+                                             Dictionary<string, Func<Polynomial, Polynomial, Polynomial?>> symbolsToOperations) {
         for (var i = startIndex; i < endIndex; i++) {
             foreach (string symbol in symbolsToOperations.Keys) {
                 if (tokens[i] == symbol) {
-                    T? result = symbolsToOperations[symbol].Invoke(parseMethod.Invoke(tokens[i - 1]), parseMethod.Invoke(tokens[i + 1]));
+                    Polynomial? result = symbolsToOperations[symbol].Invoke(Polynomial.Parse(tokens[i - 1]), Polynomial.Parse(tokens[i + 1]));
                     string? resultStr = result?.ToString();
                     if (result is null || resultStr is null) {
                         continue;    
@@ -161,19 +216,17 @@ public class AlgebraCalculator {
         return result;
     }
 
-    private static void Parse(string str) {
+    private static List<string> Parse(string str) {
         List<string> tokens = CreateTokens(str);
         if (!ValidExpresion(tokens)) {
             Console.WriteLine("SYNTAX ERROR");
-            return;
+            return new List<string>();
         }
         Simplify(tokens);
-        foreach (string token in tokens) {
-            Console.Write(token);
-        }
+        return tokens;
     }
 
-    private static bool ValidExpresion(List<string> tokens) {
+    public static bool ValidExpresion(List<string> tokens) {
         if (tokens == null) {
             throw new NullReferenceException();
         }
@@ -208,17 +261,29 @@ public class AlgebraCalculator {
         return openCount == closeCount;
     }
 
-    public void Start() {
+    public static void Main() {
         Console.Write("Enter expression: ");
         string? input = Console.ReadLine();
         while (true) {
-            if (input != null && ValidExpression(input)) {
-                RemoveWhiteSpaces(input);
-                Parse(input);
-                break;
+            if (input != null && ValidString(input)) {
+                string result = SimplifyAndFactor(input);
+                Console.WriteLine(result);
+                return;
             }
             Console.WriteLine("Invalid input");
             input = Console.ReadLine();
         }
+    }
+
+    public static string SimplifyAndFactor(string input) {
+        List<string> tokens = Simplify(input);
+        FactoredPolynomial factored = FactoredPolynomial.Factor((FactoredPolynomial)new(Polynomial.Parse(tokens[0])));
+        return factored.ToString();
+    }
+
+    public static List<string> Simplify(string input) {
+        input = RemoveWhiteSpaces(input);
+        List<string> tokens = Parse(input);
+        return tokens;
     }
 }

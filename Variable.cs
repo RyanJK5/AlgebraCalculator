@@ -1,8 +1,6 @@
-using System.Data.Common;
-
 namespace AlgebraCalculator;
 
-readonly struct Variable : IComparable<Variable> {
+readonly struct Variable {
 
     public readonly char Symbol;
     public readonly int Exponent;
@@ -21,16 +19,6 @@ readonly struct Variable : IComparable<Variable> {
 
     public bool ValidVar() => char.IsLower(Symbol);
 
-    public int CompareTo(Variable variable) {
-        if (!ValidVar() || !variable.ValidVar()) {
-            throw new ArgumentException("Invalid variable type");
-        }
-        if (Exponent == variable.Exponent) {
-            return -Symbol.CompareTo(variable.Symbol);
-        }
-        return Exponent.CompareTo(variable.Exponent);
-    }
-
     public static Variable Parse(string str) {
         if (str.Length == 0) {
             throw new ArgumentException("str must have a length greater than 0");
@@ -38,12 +26,11 @@ readonly struct Variable : IComparable<Variable> {
         if (!char.IsLower(str[0])) {
             throw new ArgumentException("First character of str must be a lowercase letter");
         }
-        for (var i = 1; i < str.Length; i++) {
-            if (!Term.AdditiveSymbol(str[i]) && !char.IsNumber(str[i])) {
-                throw new ArgumentException("Only one non-number character can be present in the first character of str");
-            }
+        int letterIndex = str.First(c => char.IsLetter(c));
+        if (letterIndex >= 0 && str.Any(c => char.IsDigit(c)) && !str.Contains('^')) {
+            throw new ArgumentException("exponents must be shown with '^'");
         }
-        return new(str[0], str.Length > 1 ? int.Parse(str.Substring(1)) : 1);
+        return new(str[0], str.Length > 1 ? int.Parse(str[(str.IndexOf('^') + 1)..]) : 1);
     }
 
     public static Variable Parse(char c) {
@@ -58,7 +45,7 @@ readonly struct Variable : IComparable<Variable> {
     public static explicit operator Variable(char c) => Parse(c);
 
     public override string ToString() =>
-        Symbol + (Exponent != 1 ? Exponent.ToString() : "");
+        Symbol + (Exponent != 1 ? "^" + Exponent.ToString() : "");
 
     public override bool Equals(object? obj) => 
         obj != null && obj is Variable variable && Symbol == variable.Symbol && Exponent == variable.Exponent
